@@ -1,0 +1,28 @@
+{
+  "name": "github-stub",
+  "version": "1.0.0",
+  "description": "Sinon stubbed node-github look-alike that can also check if you called it with proper arguments and has convenience functions to defined behavior.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext js,json",
+    "test": "npm run lint"
+  },
+  "keywords": [
+    "github",
+    "sinon",
+    "test"
+  ],
+  "author": "Martin Giger (https://humanoids.be)",
+  "license": "MIT",
+  "devDependencies": {
+    "@freaktechnik/eslint-config-node": "^5.2.1",
+    "eslint": "^4.9.0"
+  },
+  "dependencies": {
+    "github": "^11.0.0",
+    "sinon": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=7.6.0"
+  }
+}
