@@ -1,7 +1,5 @@
 # github-stub
-[![Build Status](https://travis-ci.org/freaktechnik/github-stub.svg?branch=master)](https://travis-ci.org/freaktechnik/github-stub)
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/freaktechnik/github-stub.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.org/freaktechnik/github-stub.svg?branch=master)](https://travis-ci.org/freaktechnik/github-stub) [![Greenkeeper badge](https://badges.greenkeeper.io/freaktechnik/github-stub.svg)](https://greenkeeper.io/)
 
 Exports a sinon stub version of the node github client. It also exposes a function
 to check the stubs were called with valid parameters.
