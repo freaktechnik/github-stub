@@ -10,4 +10,4 @@ function as first parameter. The assertion callback should take a truthy value
 as first parameter and a message as second parameter.
 
 ## License
-This package is licensed under the MPL license.
+This package is licensed under the MIT license.
