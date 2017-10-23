@@ -97,7 +97,7 @@ const routes = require("github/lib/routes.json"),
     generateStubClient = () => {
         const client = {};
         for(const ns in routes) {
-            if(!IGNORED_NAMESPACES.incldues(ns)) {
+            if(!IGNORED_NAMESPACES.includes(ns)) {
                 client[ns] = generateStubNamespace(routes[ns]);
             }
         }
