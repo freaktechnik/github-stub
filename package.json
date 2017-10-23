@@ -1,6 +1,6 @@
 {
   "name": "github-stub",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Sinon stubbed node-github look-alike that can also check if you called it with proper arguments and has convenience functions to defined behavior.",
   "main": "index.js",
   "scripts": {
