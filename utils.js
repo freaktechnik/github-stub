@@ -3,7 +3,7 @@
 const LAST_ELEMENT = 1,
     NO_RESULTS = -1;
 
-exports.toCamelCase = (input) => input.toLowerCase().replace(/(?:^|\s|-)./g, (match) => match[match.length - LAST_ELEMENT].toUpperCase());
+exports.toCamelCase = (input) => input.toLowerCase().replace(/(?:\s|-)./g, (match) => match[match.length - LAST_ELEMENT].toUpperCase());
 
 exports.toKebabCase = (input) => input.replace(/(\w)([A-Z])/g, (match, letter, upper) => `${letter}-${upper}`).toLowerCase();
 
