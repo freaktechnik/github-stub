@@ -95,7 +95,10 @@ const routes = require("github/lib/routes.json"),
         return namespace;
     },
     generateStubClient = () => {
-        const client = {};
+        const client = {
+            hasNextPage: sinon.stub(),
+            getNextPage: sinon.stub()
+        };
         for(const ns in routes) {
             if(!IGNORED_NAMESPACES.includes(ns)) {
                 client[ns] = generateStubNamespace(routes[ns]);
