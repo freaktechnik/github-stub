@@ -106,7 +106,30 @@ const routes = require("github/lib/routes.json"),
     generateStubClient = () => {
         const client = {
             hasNextPage: sinon.stub(),
-            getNextPage: sinon.stub()
+            getNextPage: sinon.stub(),
+            argumentsValid(assert) {
+                for(const ns in this) {
+                    if(typeof this[ns] === "object") {
+                        for(const m in this[ns]) {
+                            if(this[ns][m].called) {
+                                this[ns][m].argumentsValid(assert);
+                            }
+                        }
+                    }
+                }
+            },
+            reset() {
+                for(const ns in this) {
+                    if(typeof this[ns] === "object") {
+                        for(const m in this[ns]) {
+                            this[ns][m].reset();
+                        }
+                    }
+                    else if(typeof this[ns] === "function" && "reset" in this[ns]) {
+                        this[ns].reset();
+                    }
+                }
+            }
         };
         for(const ns in routes) {
             if(!IGNORED_NAMESPACES.includes(ns)) {

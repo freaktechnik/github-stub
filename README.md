@@ -9,5 +9,12 @@ Every stub has an additional method called `argumentsValid`. It takes an asserti
 function as first parameter. The assertion callback should take a truthy value
 as first parameter and a message as second parameter.
 
+There is a method on the top level client object with the same name and signature
+that will call `argumentsValid` on every API method that was called.
+
+## reset
+The top level client object has a `reset` method that calls `reset` on every stub
+it contains.
+
 ## License
 This package is licensed under the MIT license.

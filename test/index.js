@@ -78,7 +78,9 @@ const resolveParams = (params) => {
 
 const TOP_LEVEL_METHODS = [
     'hasNextPage',
-    'getNextPage'
+    'getNextPage',
+    'argumentsValid',
+    'reset'
 ];
 
 const testMethod = (t, property) => {
@@ -163,10 +165,36 @@ test('base', (t) => {
     }
 });
 
+test('assert is never called with fresh stub', (t) => {
+    const object = getClient();
+    const assert = sinon.spy((a, message) => t.fail(message));
+    object.argumentsValid(assert);
+    t.false(assert.called);
+});
+
+test('Top level arguments valid with called API stub', (t) => {
+    const object = getClient();
+    object.misc.getRateLimit({});
+    const assert = sinon.spy();
+    object.argumentsValid(assert);
+    t.true(assert.called);
+});
+
+test('Reset', (t) => {
+    const object = getClient();
+    object.misc.getRateLimit.returns(true);
+    object.getNextPage.returns(true);
+
+    object.reset();
+
+    t.falsy(object.misc.getRateLimit());
+    t.falsy(object.getNextPage());
+});
+
 {
     const stubGithub = getClient();
     for(const ns in stubGithub) {
-        if(!TOP_LEVEL_METHODS.includes(ns)) {
+        if(typeof stubGithub[ns] === "object") {
             const namespace = stubGithub[ns];
             test('namespace', testNamespace, namespace, ns);
             for(const m in stubGithub[ns]) {
