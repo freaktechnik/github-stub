@@ -1,5 +1,4 @@
 "use strict";
-
 const routes = require("github/lib/routes.json"),
     sinon = require("sinon"),
     utils = require("./utils"),
@@ -10,7 +9,8 @@ const routes = require("github/lib/routes.json"),
             SECOND_CHAR = 1;
         for(const param in params) {
             if(param[FIRST_CHAR] === '$') {
-                resolvedParams[param] = routes.defines.params[param.substr(SECOND_CHAR)];
+                const realName = param.substr(SECOND_CHAR);
+                resolvedParams[realName] = routes.defines.params[realName];
             }
             else {
                 resolvedParams[param] = params[param];
@@ -29,27 +29,31 @@ const routes = require("github/lib/routes.json"),
          * @returns {undefined}
          */
         return function(assert) {
-            assert(this.lastCall.args.length <= REQUIRED_PARAM_COUNT);
+            assert(this.lastCall.args.length <= REQUIRED_PARAM_COUNT, "Too many parameters were given");
             if(this.lastCall.args.length === REQUIRED_PARAM_COUNT) {
                 const [ lastArgs ] = this.lastCall.args;
 
                 for(const arg in lastArgs) {
-                    assert(arg in params);
+                    assert(arg in params, `${arg} parameter missing`);
                     if(arg in params) {
                         const value = lastArgs[arg],
                             argSpec = params[arg];
                         switch(argSpec.type) {
                         case "String":
-                        case "Number":
                         case "Boolean":
-                            assert(typeof value === argSpec.type.toLowerCase());
+                            assert(typeof value === argSpec.type.toLowerCase(), `${arg} is not of primitive type ${argSpec.type}`);
                             break;
+                        case "Number": {
+                            const number = parseInt(value, 10);
+                            assert(!isNaN(number), `${arg} is not a valid number`);
+                            break;
+                        }
                         case "Date":
-                            assert(typeof value === "string");
-                            assert(utils.isISOTimestamp(value));
+                            assert(typeof value === "string", `${arg} is not a Date in string form`);
+                            assert(utils.isISOTimestamp(value), `${arg} is not formatted as an ISO Date`);
                             break;
                         case "Array":
-                            assert(Array.isArray(value));
+                            assert(Array.isArray(value), `${arg} is not an array`);
                             break;
                         case "Json":
                             assert(typeof value === 'string');
@@ -60,27 +64,32 @@ const routes = require("github/lib/routes.json"),
                                 assert(false, 'Can not parse JSON');
                             }
                             break;
+                        /* istanbul ignore next */
                         default:
-                            assert(false, `Unknown argument type ${argSpec.type}`);
+                            assert(false, `Unknown argument type ${argSpec.type} for ${arg}`);
                         }
 
                         if("enum" in argSpec) {
-                            assert(argSpec.enum.includes(value));
+                            assert(argSpec.enum.includes(value), `${arg} is not in the set of allowed values of ${argSpec.enum.join(", ")}`);
                         }
 
                         if("validation" in argSpec && argSpec.validation.length) {
-                            assert(value.search(new RegExp(argSpec.validation)) !== NOT_FOUND);
+                            let stringValue = value;
+                            if(argSpec.type === "Number" && typeof value === "number") {
+                                stringValue = `${value}`;
+                            }
+                            assert(stringValue.search(new RegExp(argSpec.validation)) !== NOT_FOUND, `${arg} does not match the required pattern of "${argSpec.validation}"`);
                         }
                     }
                 }
                 for(const p in params) {
                     if(params[p].required) {
-                        assert(p in lastArgs);
+                        assert(p in lastArgs, `${p} is required and not set`);
                     }
                 }
             }
             else if(!this.lastCall.args.length) {
-                assert(!Array.from(Object.values(params)).some((arg) => arg.required));
+                assert(!Array.from(Object.values(params)).some((arg) => arg.required), `Requires arguments but none were passed in`);
             }
         };
     },
