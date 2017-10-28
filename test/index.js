@@ -86,7 +86,7 @@ const TOP_LEVEL_METHODS = [
 const testMethod = (t, property) => {
     t.is(typeof property, "function");
 };
-testMethod.title = (title, property, name) => `${title} ${name}`;
+testMethod.title = (title, property, name) => `method ${title} -> ${name}`;
 
 const testArgumentsValid = (t, property, name, spec) => {
     t.true("argumentsValid" in property);
@@ -133,7 +133,7 @@ const testArgumentsValid = (t, property, name, spec) => {
     property.argumentsValid(spyAssertFalse);
     t.true(spyAssertFalse.called);
 };
-testArgumentsValid.title = (title, property, name) => `${title} ${name}`;
+testArgumentsValid.title = (title, property, name) => `arguments valid for ${title} -> ${name}`;
 
 const testNamespace = (t, namespace, ns) => {
     t.true(ns in schema);
@@ -199,8 +199,10 @@ test('Reset', (t) => {
             test('namespace', testNamespace, namespace, ns);
             for(const m in stubGithub[ns]) {
                 const method = namespace[m];
-                test('method', testMethod, method, m);
-                test('arguments valid', testArgumentsValid, method, m, schema[ns][utils.toKebabCase(m)]);
+                test(ns, [
+                    testMethod,
+                    testArgumentsValid
+                ], method, m, schema[ns][utils.toKebabCase(m)]);
             }
         }
     }
