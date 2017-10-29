@@ -7,10 +7,16 @@ to check the stubs were called with valid parameters.
 ## argumentsValid
 Every stub has an additional method called `argumentsValid`. It takes an assertion
 function as first parameter. The assertion callback should take a truthy value
-as first parameter and a message as second parameter.
+as first parameter and a message as second parameter. The second parameter is
+an optional sinon spy call to assess.
 
 There is a method on the top level client object with the same name and signature
 that will call `argumentsValid` on every API method that was called.
+
+## allArgumentsValid
+Same as `argumentsValid` but for every call of the stub.
+
+This is also available on the top level client object.
 
 ## reset
 The top level client object has a `reset` method that calls `reset` on every stub

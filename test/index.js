@@ -80,6 +80,7 @@ const TOP_LEVEL_METHODS = [
     'hasNextPage',
     'getNextPage',
     'argumentsValid',
+    'allArgumentsValid',
     'reset'
 ];
 
@@ -92,11 +93,19 @@ const testArgumentsValid = (t, property, name, spec) => {
     t.true("argumentsValid" in property);
     t.is(typeof property.argumentsValid, "function");
 
+    const assert = sinon.spy();
+    t.notThrows(() => property.argumentsValid(assert));
+    t.true(assert.called);
+
     property({
         foo: 'bar'
     });
-    const assert = sinon.spy();
+    assert.reset();
     property.argumentsValid(assert);
+    t.true(assert.called);
+
+    assert.reset();
+    property.argumentsValid(assert, property.firstCall);
     t.true(assert.called);
 
     property();
@@ -178,6 +187,18 @@ test('Top level arguments valid with called API stub', (t) => {
     const assert = sinon.spy();
     object.argumentsValid(assert);
     t.true(assert.called);
+    t.true(assert.alwaysCalledWith(true));
+});
+
+test('Top level allArgumentsValid with called API stubs', (t) => {
+    const object = getClient();
+    object.misc.getRateLimit({});
+    object.misc.getRateLimit({});
+    object.misc.getRateLimit({});
+    const assert = sinon.spy();
+    object.allArgumentsValid(assert);
+    t.true(assert.called);
+    t.true(assert.alwaysCalledWith(true));
 });
 
 test('Reset', (t) => {
@@ -189,6 +210,14 @@ test('Reset', (t) => {
 
     t.falsy(object.misc.getRateLimit());
     t.falsy(object.getNextPage());
+});
+
+test('does not throw when calling arguments valid on uncalled stub', (t) => {
+    const object = getClient();
+    const assert = sinon.spy();
+    t.notThrows(() => object.misc.getRateLimit.argumentsValid(assert));
+
+    t.true(assert.called);
 });
 
 {
