@@ -1,8 +1,8 @@
 "use strict";
 const routes = require("github/lib/routes.json"),
+    definitions = require("github/lib/definitions.json"),
     sinon = require("sinon"),
     utils = require("./utils"),
-    IGNORED_NAMESPACES = [ 'defines' ],
     getResolvedParams = (params) => {
         const resolvedParams = {},
             FIRST_CHAR = 0,
@@ -10,7 +10,7 @@ const routes = require("github/lib/routes.json"),
         for(const param in params) {
             if(param[FIRST_CHAR] === '$') {
                 const realName = param.substr(SECOND_CHAR);
-                resolvedParams[realName] = routes.defines.params[realName];
+                resolvedParams[realName] = definitions.params[realName];
             }
             else {
                 resolvedParams[param] = params[param];
@@ -158,9 +158,7 @@ const routes = require("github/lib/routes.json"),
             }
         };
         for(const ns in routes) {
-            if(!IGNORED_NAMESPACES.includes(ns)) {
-                client[ns] = generateStubNamespace(routes[ns]);
-            }
+            client[ns] = generateStubNamespace(routes[ns]);
         }
         return client;
     };

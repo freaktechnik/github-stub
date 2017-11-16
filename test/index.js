@@ -1,5 +1,6 @@
 import test from 'ava';
 import schema from 'github/lib/routes.json';
+import definitions from 'github/lib/definitions.json';
 import getClient from '../index';
 import utils from '../utils';
 import sinon from 'sinon';
@@ -69,7 +70,7 @@ const resolveParams = (params) => {
     for(const param in params) {
         if(param[0] === '$') {
             const name = param.substr(1);
-            p[name] = schema.defines.params[name];
+            p[name] = definitions.params[name];
             delete p[param];
         }
     }
@@ -163,9 +164,7 @@ test('base', (t) => {
     const object = getClient();
     t.is(typeof object, "object");
     for(const p in schema) {
-        if(p !== "defines") {
-            t.true(p in object);
-        }
+        t.true(p in object);
     }
 
     for(const m of TOP_LEVEL_METHODS) {
