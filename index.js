@@ -58,7 +58,7 @@ const routes = require("github/lib/routes.json"),
                                 assert(Array.isArray(value), `${arg} is not an array`);
                                 break;
                             case "Json":
-                                assert(typeof value === 'string');
+                                assert(typeof value === 'string', `${arg} JSON value is not a string`);
                                 try {
                                     JSON.parse(value);
                                 }
