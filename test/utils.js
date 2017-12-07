@@ -81,3 +81,36 @@ testIsISODate.title = (title, data) => `${title} ${data.string}`;
 for(const fixture of TIMESTAMP_FIXTURES) {
     test('is iso timestamp', testIsISODate, fixture);
 }
+
+const VALID_OBJECTS = [
+    "Object",
+    Buffer.from("Object"),
+    process.stdin
+];
+const testValidObjects = (t, object) => {
+    t.true(utils.isObject(object));
+};
+testValidObjects.title = (title, object) => `${object.toString()} ${typeof object} ${title}`;
+
+for(const fixture of VALID_OBJECTS) {
+    test('is valid object', testValidObjects, fixture);
+}
+
+const INVALID_OBJECTS = [
+    1,
+    true,
+    null,
+    undefined,
+    function() {
+        // only used for type check.
+    },
+    {}
+];
+const testInvalidObjects = (t, object) => {
+    t.false(utils.isObject(object));
+};
+testInvalidObjects.title = (title, object) => `${typeof object} ${title}`;
+
+for(const fixture of INVALID_OBJECTS) {
+    test('is not valid object', testInvalidObjects, fixture);
+}

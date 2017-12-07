@@ -66,6 +66,9 @@ const routes = require("github/lib/routes.json"),
                                     assert(false, 'Can not parse JSON');
                                 }
                                 break;
+                            case "Object":
+                                assert(utils.isObject(value), `${arg} is not a readable stream, Buffer or string`);
+                                break;
                             /* istanbul ignore next */
                             default:
                                 assert(false, `Unknown argument type ${argSpec.type} for ${arg}`);

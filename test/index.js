@@ -45,6 +45,7 @@ const getArgValueForSpec = (spec) => {
 
     switch(spec.type) {
     case "String":
+    case "Object":
         return getBestStringArg(spec);
     case "Number":
         return 1;
