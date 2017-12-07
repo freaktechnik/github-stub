@@ -25,7 +25,7 @@
     "nyc": "^11.3.0"
   },
   "dependencies": {
-    "github": "12.1.0",
+    "github": "13.0.1",
     "sinon": "^4.1.2"
   },
   "engines": {
