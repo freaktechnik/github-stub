@@ -8,9 +8,13 @@ import path from 'path';
 import utils from '../utils';
 
 const regexpCache = new Map();
-const getRegexpForPath = (url) => {
+const getRegexpForPath = (url, noSlashes = true) => {
+    let regexp = `^${url.replace(/:[^/]+/g, '[^/]*')}$`;
+    if(!noSlashes) {
+        regexp = `^${url.replace(/:[^/]+/g, '.*')}$`;
+    }
     if(!regexpCache.has(url)) {
-        regexpCache.set(url, `^${url.replace(/:[^/]+/g, '[^/]*')}$`);
+        regexpCache.set(url, regexp);
     }
     return regexpCache.get(url);
 };
@@ -19,21 +23,10 @@ const cleanURL = (url) => url.substr(1)
     .split("?")
     .shift();
 
-const getClientMethod = (request) => {
-    const cleanedPath = cleanURL(request.path);
-    for(const ns in schema) {
-        for(const method in schema[ns]) {
-            const m = schema[ns][method];
-            if(m.method.toLowerCase() === request.method.toLowerCase() && cleanedPath.search(new RegExp(getRegexpForPath(cleanURL(m.url)))) !== -1) {
-                return [
-                    ns,
-                    method
-                ];
-            }
-        }
-    }
-    return [];
-};
+const SLASHED_PLACEHOLDERS = [
+    'ref',
+    'url'
+];
 
 const getParam = (method, name) => {
     if(name in method.params) {
@@ -44,6 +37,53 @@ const getParam = (method, name) => {
     }
     return false;
 };
+
+const canContainSlashes = (url) => SLASHED_PLACEHOLDERS.some((p) => url.includes(`:${p}`));
+const getRegexpForMethod = (method) => {
+    let cleanedURL = cleanURL(method.url);
+    for(const param in method.params) {
+        let inURL = `:${param}`;
+        if(param.startsWith('$')) {
+            inURL = `:${param.substr(1)}`;
+        }
+        if(cleanedURL.includes(inURL)) {
+            const p = getParam(method, inURL.substr(1));
+            if(p && p.validation && p.validation.length) {
+                let validationRegexp = p.validation;
+                if(validationRegexp.startsWith('^')) {
+                    validationRegexp = validationRegexp.substr(1);
+                }
+                if(validationRegexp.endsWith('$')) {
+                    validationRegexp = validationRegexp.substr(0, validationRegexp.length - 1);
+                }
+                cleanedURL = cleanedURL.replace(inURL, `(${validationRegexp})`);
+            }
+        }
+    }
+    return new RegExp(getRegexpForPath(cleanedURL, !canContainSlashes(cleanedURL)));
+};
+
+const getClientMethod = (request) => {
+    const cleanedPath = cleanURL(request.path);
+    for(const ns in schema) {
+        for(const method in schema[ns]) {
+            const m = schema[ns][method];
+            // Skip upload asset method for most fixtures.
+            if((method === "upload-asset" && !cleanedPath.includes('release-assets')) ||
+                (request.method.toLowerCase() === "post" && method !== "upload-asset" && cleanedPath.includes('release-assets'))) {
+                continue;
+            }
+            else if(m.method.toLowerCase() === request.method.toLowerCase() && cleanedPath.search(getRegexpForMethod(m)) !== -1) {
+                return [
+                    ns,
+                    method
+                ];
+            }
+        }
+    }
+    return [];
+};
+
 
 const normalizeParam = (value, type) => {
     switch(type) {
@@ -94,6 +134,12 @@ const getParams = (request, ns, method) => {
         }
     }
 
+    if(m.headers) {
+        for(const header in m.headers) {
+            params[m.headers[header].substr(1)] = request.reqheaders[header.toLowerCase()];
+        }
+    }
+
     let bodyConsumed = false;
     if(m.requestFormat === "raw") {
         params.data = request.body;
@@ -117,12 +163,17 @@ const getParams = (request, ns, method) => {
                 params[p] = normalizeParam(request.body[p], param.type);
             }
         }
+        bodyConsumed = true;
     }
 
     for(const p in m.params) {
         if(!p.startsWith("$") && m.params[p].required && !(p in params)) {
             if(p === "filePath") {
                 params[p] = '/tmp/file';
+            }
+            else if(p === "file" && !bodyConsumed) {
+                params[p] = request.body;
+                bodyConsumed = true;
             }
             else {
                 throw new Error(`Missing param ${p} for ${request.path}`);
