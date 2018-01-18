@@ -109,8 +109,15 @@ const routes = require("@octokit/rest/lib/routes.json"),
     },
     generateStubClient = () => {
         const client = {
+            authenticate: sinon.stub(),
             hasNextPage: sinon.stub(),
+            hasPreviousPage: sinon.stub(),
+            hasFirstPage: sinon.stub(),
+            hasLastPage: sinon.stub(),
             getNextPage: sinon.stub(),
+            getPreviousPage: sinon.stub(),
+            getFirstPage: sinon.stub(),
+            getLastPage: sinon.stub(),
             argumentsValid(assert) {
                 for(const ns in this) {
                     if(typeof this[ns] === "object") {

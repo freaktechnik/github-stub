@@ -69,8 +69,15 @@ const resolveParams = (params) => {
 };
 
 const TOP_LEVEL_METHODS = [
+    'authenticate',
     'hasNextPage',
+    'hasPreviousPage',
+    'hasFirstPage',
+    'hasLastPage',
     'getNextPage',
+    'getPreviousPage',
+    'getFirstPage',
+    'getLastPage',
     'argumentsValid',
     'allArgumentsValid',
     'reset'
