@@ -1,8 +1,6 @@
 import test from 'ava';
-import schema from 'github/lib/routes.json';
-import definitions from 'github/lib/definitions.json';
+import schema from '@octokit/rest/lib/routes.json';
 import getClient from '../index';
-import utils from '../utils';
 import sinon from 'sinon';
 
 const STRING_ARGS = [
@@ -26,13 +24,13 @@ const getBestStringArg = (spec) => {
 const getArgValueForSpec = (spec) => {
     if("default" in spec) {
         if(typeof spec.default === "string") {
-            if(spec.type === "Boolean") {
+            if(spec.type === "boolean") {
                 return spec.default === "true";
             }
-            else if(spec.type === "Number") {
+            else if(spec.type === "number") {
                 return parseInt(spec.default, 10);
             }
-            else if(spec.type === "Array") {
+            else if(spec.type === "string[]") {
                 return JSON.parse(spec.default);
             }
         }
@@ -44,21 +42,21 @@ const getArgValueForSpec = (spec) => {
     }
 
     switch(spec.type) {
-    case "String":
-    case "Object":
+    case "string":
+    case "object":
         return getBestStringArg(spec);
-    case "Number":
+    case "number":
         return 1;
-    case "Boolean":
+    case "boolean":
         return true;
-    case "Date":
+    case "date":
         return "1999-12-31T23:00:00Z";
-    case "Array":
+    case "string[]":
         return [
             'foo',
             'bar'
         ];
-    case "Json":
+    case "json":
         return JSON.stringify({});
     default:
     }
@@ -67,14 +65,6 @@ const getArgValueForSpec = (spec) => {
 };
 const resolveParams = (params) => {
     const p = Object.assign({}, params);
-
-    for(const param in params) {
-        if(param[0] === '$') {
-            const name = param.substr(1);
-            p[name] = definitions.params[name];
-            delete p[param];
-        }
-    }
     return p;
 };
 
@@ -126,9 +116,9 @@ const testArgumentsValid = (t, property, name, spec) => {
     property.argumentsValid(spyAssertTrue);
     t.true(spyAssertTrue.called);
 
-    if(Object.values(resolved).some((p) => p.type === "Json")) {
+    if(Object.values(resolved).some((p) => p.type === "json")) {
         for(const param in resolved) {
-            if(resolved[param].type === "Json") {
+            if(resolved[param].type === "json") {
                 params[param] = "{;}";
             }
         }
@@ -151,8 +141,7 @@ const testNamespace = (t, namespace, ns) => {
     t.is(typeof namespace, "object");
     const referenceNS = schema[ns];
     for(const method in referenceNS) {
-        const camelCased = utils.toCamelCase(method);
-        t.true(camelCased in namespace);
+        t.true(method in namespace);
     }
 };
 testNamespace.title = (title, n, ns) => `${title} ${ns}`;
@@ -231,7 +220,7 @@ test('does not throw when calling arguments valid on uncalled stub', (t) => {
                 test(ns, [
                     testMethod,
                     testArgumentsValid
-                ], method, m, schema[ns][utils.toKebabCase(m)]);
+                ], method, m, schema[ns][m]);
             }
         }
     }

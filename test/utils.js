@@ -1,35 +1,6 @@
 import test from 'ava';
 import utils from '../utils';
 
-const CASE_FIXTURES = [
-    {
-        camel: 'getTestString',
-        kebab: 'get-test-string'
-    },
-    {
-        camel: 'hi',
-        kebab: 'hi'
-    },
-    {
-        camel: 'fooBar',
-        kebab: 'foo-bar'
-    }
-];
-
-const testCamelCase = (t, data) => {
-    t.is(utils.toCamelCase(data.kebab), data.camel);
-};
-testCamelCase.title = (title, data) => `${title} "${data.camel}"`;
-const testKebabCase = (t, data) => {
-    t.is(utils.toKebabCase(data.camel), data.kebab);
-};
-testKebabCase.title = (title, data) => `${title} "${data.kebab}"`;
-
-for(const fixture of CASE_FIXTURES) {
-    test('kebab case', testKebabCase, fixture);
-    test('camel case', testCamelCase, fixture);
-}
-
 const TIMESTAMP_FIXTURES = [
     {
         string: '1111-11-11T11:11:11Z',

@@ -1,24 +1,8 @@
 "use strict";
-const routes = require("github/lib/routes.json"),
-    definitions = require("github/lib/definitions.json"),
+const routes = require("@octokit/rest/lib/routes.json"),
     sinon = require("sinon"),
     utils = require("./utils"),
-    getResolvedParams = (params) => {
-        const resolvedParams = {},
-            FIRST_CHAR = 0,
-            SECOND_CHAR = 1;
-        for(const param in params) {
-            if(param[FIRST_CHAR] === '$') {
-                const realName = param.substr(SECOND_CHAR);
-                resolvedParams[realName] = definitions.params[realName];
-            }
-            else {
-                resolvedParams[param] = params[param];
-            }
-        }
-
-        return resolvedParams;
-    },
+    getResolvedParams = (params) => params,
     generateArgumentsValid = (spec) => {
         const params = getResolvedParams(spec.params),
             REQUIRED_PARAM_COUNT = 1,
@@ -41,23 +25,20 @@ const routes = require("github/lib/routes.json"),
                             const value = lastArgs[arg],
                                 argSpec = params[arg];
                             switch(argSpec.type) {
-                            case "String":
-                            case "Boolean":
+                            case "string":
+                            case "boolean":
                                 assert(typeof value === argSpec.type.toLowerCase(), `${arg} is not of primitive type ${argSpec.type}`);
                                 break;
-                            case "Number": {
+                            case "number": {
                                 const number = parseInt(value, 10);
                                 assert(!isNaN(number), `${arg} is not a valid number`);
                                 break;
                             }
-                            case "Date":
+                            case "date":
                                 assert(typeof value === "string", `${arg} is not a Date in string form`);
                                 assert(utils.isISOTimestamp(value), `${arg} is not formatted as an ISO Date`);
                                 break;
-                            case "Array":
-                                assert(Array.isArray(value), `${arg} is not an array`);
-                                break;
-                            case "Json":
+                            case "json":
                                 assert(typeof value === 'string', `${arg} JSON value is not a string`);
                                 try {
                                     JSON.parse(value);
@@ -66,8 +47,12 @@ const routes = require("github/lib/routes.json"),
                                     assert(false, 'Can not parse JSON');
                                 }
                                 break;
-                            case "Object":
+                            case "object":
                                 assert(utils.isObject(value), `${arg} is not a readable stream, Buffer or string`);
+                                break;
+                            case "string[]":
+                                assert(Array.isArray(value), `${arg} string array value is not an array`);
+                                assert(value.every((v) => typeof v === "string"), `${arg} string array's items are not all strings`);
                                 break;
                             /* istanbul ignore next */
                             default:
@@ -80,7 +65,7 @@ const routes = require("github/lib/routes.json"),
 
                             if("validation" in argSpec && argSpec.validation.length) {
                                 let stringValue = value;
-                                if(argSpec.type === "Number" && typeof value === "number") {
+                                if(argSpec.type === "number" && typeof value === "number") {
                                     stringValue = `${value}`;
                                 }
                                 assert(stringValue.search(new RegExp(argSpec.validation)) !== NOT_FOUND, `${arg} does not match the required pattern of "${argSpec.validation}"`);
@@ -115,10 +100,9 @@ const routes = require("github/lib/routes.json"),
     generateStubNamespace = (endpoints) => {
         const namespace = {};
         for(const route in endpoints) {
-            const name = utils.toCamelCase(route);
-            namespace[name] = sinon.stub();
-            namespace[name].argumentsValid = generateArgumentsValid(endpoints[route]);
-            namespace[name].allArgumentsValid = allArgumentsValid;
+            namespace[route] = sinon.stub();
+            namespace[route].argumentsValid = generateArgumentsValid(endpoints[route]);
+            namespace[route].allArgumentsValid = allArgumentsValid;
         }
 
         return namespace;

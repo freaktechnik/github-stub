@@ -1,11 +1,9 @@
 import test from 'ava';
-import schema from 'github/lib/routes.json';
-import definitions from 'github/lib/definitions.json';
+import schema from '@octokit/rest/lib/routes.json';
 import fixtures from '@octokit/fixtures';
 import getClient from '../index';
 import fs from 'fs';
 import path from 'path';
-import utils from '../utils';
 
 const regexpCache = new Map();
 const getRegexpForPath = (url, noSlashes = true) => {
@@ -32,9 +30,6 @@ const getParam = (method, name) => {
     if(name in method.params) {
         return method.params[name];
     }
-    else if(`$${name}` in method.params) {
-        return definitions.params[name];
-    }
     return false;
 };
 
@@ -42,10 +37,7 @@ const canContainSlashes = (url) => SLASHED_PLACEHOLDERS.some((p) => url.includes
 const getRegexpForMethod = (method) => {
     let cleanedURL = cleanURL(method.url);
     for(const param in method.params) {
-        let inURL = `:${param}`;
-        if(param.startsWith('$')) {
-            inURL = `:${param.substr(1)}`;
-        }
+        const inURL = `:${param}`;
         if(cleanedURL.includes(inURL)) {
             const p = getParam(method, inURL.substr(1));
             if(p && p.validation && p.validation.length) {
@@ -57,6 +49,10 @@ const getRegexpForMethod = (method) => {
                     validationRegexp = validationRegexp.substr(0, validationRegexp.length - 1);
                 }
                 cleanedURL = cleanedURL.replace(inURL, `(${validationRegexp})`);
+            }
+            else if(p && p.enum && p.enum.length) {
+                const enumRegexp = `(${p.enum.join('|')})`;
+                cleanedURL = cleanedURL.replace(inURL, enumRegexp);
             }
         }
     }
@@ -87,11 +83,11 @@ const getClientMethod = (request) => {
 
 const normalizeParam = (value, type) => {
     switch(type) {
-    case "Number":
+    case "number":
         return parseInt(value, 10);
-    case "String":
+    case "string":
         return value.toString();
-    case "Json":
+    case "json":
         if(typeof value === "object") {
             return JSON.stringify(value);
         }
@@ -134,12 +130,6 @@ const getParams = (request, ns, method) => {
         }
     }
 
-    if(m.headers) {
-        for(const header in m.headers) {
-            params[m.headers[header].substr(1)] = request.reqheaders[header.toLowerCase()];
-        }
-    }
-
     let bodyConsumed = false;
     if(m.requestFormat === "raw") {
         params.data = request.body;
@@ -149,7 +139,7 @@ const getParams = (request, ns, method) => {
     if(!bodyConsumed) {
         for(const p in m.params) {
             const param = getParam(m, p);
-            if(param && param.sendValueAsBody) {
+            if(param && param.mapTo === 'input') {
                 params[p] = request.body;
                 bodyConsumed = true;
             }
@@ -166,14 +156,19 @@ const getParams = (request, ns, method) => {
         bodyConsumed = true;
     }
 
+    const headerProperty = 'headers.';
     for(const p in m.params) {
-        if(!p.startsWith("$") && m.params[p].required && !(p in params)) {
+        if(m.params[p].required && !(p in params)) {
             if(p === "filePath") {
                 params[p] = '/tmp/file';
             }
             else if(p === "file" && !bodyConsumed) {
                 params[p] = request.body;
                 bodyConsumed = true;
+            }
+            else if(m.params[p].mapTo.startsWith(headerProperty)) {
+                const header = m.params[p].mapTo.substr(headerProperty.length);
+                params[p] = request.reqheaders[header];
             }
             else {
                 throw new Error(`Missing param ${p} for ${request.path}`);
@@ -198,11 +193,10 @@ const testFixture = async (t, request) => {
     const params = getParams(request, ns, method);
 
     const client = getClient();
-    const ccMethod = utils.toCamelCase(method);
 
-    await client[ns][ccMethod](params);
+    await client[ns][method](params);
 
-    client[ns][ccMethod].argumentsValid((a, m) => t.true(a, m));
+    client[ns][method].argumentsValid((a, m) => t.true(a, m));
 };
 testFixture.title = (title, request) => `${title} => ${request.path}`;
 
