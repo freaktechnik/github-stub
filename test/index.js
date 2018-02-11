@@ -99,16 +99,16 @@ const testArgumentsValid = (t, property, name, spec) => {
     property({
         foo: 'bar'
     });
-    assert.reset();
+    assert.resetHistory();
     property.argumentsValid(assert);
     t.true(assert.called);
 
-    assert.reset();
+    assert.resetHistory();
     property.argumentsValid(assert, property.firstCall);
     t.true(assert.called);
 
     property();
-    assert.reset();
+    assert.resetHistory();
     property.argumentsValid(assert);
     t.true(assert.called);
 
@@ -130,7 +130,7 @@ const testArgumentsValid = (t, property, name, spec) => {
             }
         }
         property(params);
-        assert.reset();
+        assert.resetHistory();
         property.argumentsValid(assert);
         t.true(assert.called);
         t.true(assert.calledWith(false, 'Can not parse JSON'));
