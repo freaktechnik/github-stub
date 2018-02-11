@@ -18,7 +18,7 @@
   "devDependencies": {
     "@freaktechnik/eslint-config-node": "^6.0.0",
     "@freaktechnik/eslint-config-test": "^6.0.0",
-    "@octokit/fixtures": "^6.0.0",
+    "@octokit/fixtures": "^7.0.0",
     "ava": "^0.25.0",
     "codecov": "^3.0.0",
     "eslint": "^4.15.0",
