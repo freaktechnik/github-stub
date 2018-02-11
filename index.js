@@ -48,6 +48,7 @@ const routes = require("@octokit/rest/lib/routes.json"),
                                 }
                                 break;
                             case "object":
+                            case "string | object":
                                 assert(utils.isObject(value), `${arg} is not a readable stream, Buffer or string`);
                                 break;
                             case "string[]":
