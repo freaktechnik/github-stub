@@ -1,6 +1,6 @@
 import test from 'ava';
 import schema from '@octokit/rest/lib/routes.json';
-import getClient from '../index';
+import getClient from '..';
 import sinon from 'sinon';
 
 const STRING_ARGS = [

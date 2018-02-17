@@ -1,7 +1,7 @@
 import test from 'ava';
 import schema from '@octokit/rest/lib/routes.json';
 import fixtures from '@octokit/fixtures';
-import getClient from '../index';
+import getClient from '..';
 import fs from 'fs';
 import path from 'path';
 
