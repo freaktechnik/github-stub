@@ -16,17 +16,17 @@
   "author": "Martin Giger (https://humanoids.be)",
   "license": "MIT",
   "devDependencies": {
-    "@freaktechnik/eslint-config-node": "^6.2.0",
-    "@freaktechnik/eslint-config-test": "^6.2.0",
-    "@octokit/fixtures": "^7.0.2",
+    "@freaktechnik/eslint-config-node": "^6.3.1",
+    "@freaktechnik/eslint-config-test": "^6.3.2",
+    "@octokit/fixtures": "^7.1.0",
     "ava": "^0.25.0",
     "codecov": "^3.0.0",
-    "eslint": "^4.18.0",
+    "eslint": "^4.18.1",
     "nyc": "^11.5.0"
   },
   "dependencies": {
     "@octokit/rest": "14.0.9",
-    "sinon": "^4.3.0"
+    "sinon": "^4.4.2"
   },
   "engines": {
     "node": ">=7.6.0"
@@ -44,5 +44,6 @@
       "lcov",
       "text"
     ]
-  }
+  },
+  "sideEffects": false
 }
