@@ -1,12 +1,14 @@
 "use strict";
+
+//TODO properly handle . for object proeprties
+
 const routes = require("@octokit/rest/lib/routes.json"),
     sinon = require("sinon"),
-    utils = require("./utils"),
+    verify = require("./verify"),
     getResolvedParams = (params) => params,
     generateArgumentsValid = (spec) => {
         const params = getResolvedParams(spec.params),
-            REQUIRED_PARAM_COUNT = 1,
-            NOT_FOUND = -1;
+            REQUIRED_PARAM_COUNT = 1;
         /**
          * @param {Function} assert - Assert function to use.
          * @param {SinonCall} [call=this.lastCall] - Call to inspect.
@@ -22,59 +24,12 @@ const routes = require("@octokit/rest/lib/routes.json"),
                     for(const arg in lastArgs) {
                         assert(arg in params, `${arg} parameter missing`);
                         if(arg in params) {
-                            const value = lastArgs[arg],
-                                argSpec = params[arg];
-                            switch(argSpec.type) {
-                            case "string":
-                            case "boolean":
-                                assert(typeof value === argSpec.type.toLowerCase(), `${arg} is not of primitive type ${argSpec.type}`);
-                                break;
-                            case "number": {
-                                const number = parseInt(value, 10);
-                                assert(!isNaN(number), `${arg} is not a valid number`);
-                                break;
-                            }
-                            case "date":
-                                assert(typeof value === "string", `${arg} is not a Date in string form`);
-                                assert(utils.isISOTimestamp(value), `${arg} is not formatted as an ISO Date`);
-                                break;
-                            case "json":
-                                assert(typeof value === 'string', `${arg} JSON value is not a string`);
-                                try {
-                                    JSON.parse(value);
-                                }
-                                catch(e) {
-                                    assert(false, 'Can not parse JSON');
-                                }
-                                break;
-                            case "object":
-                            case "string | object":
-                                assert(utils.isObject(value), `${arg} is not a readable stream, Buffer or string`);
-                                break;
-                            case "string[]":
-                                assert(Array.isArray(value), `${arg} string array value is not an array`);
-                                assert(value.every((v) => typeof v === "string"), `${arg} string array's items are not all strings`);
-                                break;
-                            /* istanbul ignore next */
-                            default:
-                                assert(false, `Unknown argument type ${argSpec.type} for ${arg}`);
-                            }
-
-                            if("enum" in argSpec) {
-                                assert(argSpec.enum.includes(value), `${arg} is not in the set of allowed values of ${argSpec.enum.join(", ")}`);
-                            }
-
-                            if("validation" in argSpec && argSpec.validation.length) {
-                                let stringValue = value;
-                                if(argSpec.type === "number" && typeof value === "number") {
-                                    stringValue = `${value}`;
-                                }
-                                assert(stringValue.search(new RegExp(argSpec.validation)) !== NOT_FOUND, `${arg} does not match the required pattern of "${argSpec.validation}"`);
-                            }
+                            const value = lastArgs[arg];
+                            verify.argSpec(arg, value, params, assert);
                         }
                     }
                     for(const p in params) {
-                        if(params[p].required) {
+                        if(!p.includes(".") && params[p].required) {
                             assert(p in lastArgs, `${p} is required and not set`);
                         }
                     }
@@ -98,11 +53,19 @@ const routes = require("@octokit/rest/lib/routes.json"),
             this.argumentsValid(assert, call);
         }
     },
-    generateStubNamespace = (endpoints) => {
+    generateStubNamespace = (routes, ns) => {
         const namespace = {};
-        for(const route in endpoints) {
+        for(const route in routes[ns]) {
             namespace[route] = sinon.stub();
-            namespace[route].argumentsValid = generateArgumentsValid(endpoints[route]);
+            let spec = routes[ns][route];
+            if(spec.alias) {
+                const [
+                    aliasNs,
+                    aliasRoute
+                ] = spec.alias.split(".");
+                spec = routes[aliasNs][aliasRoute];
+            }
+            namespace[route].argumentsValid = generateArgumentsValid(spec);
             namespace[route].allArgumentsValid = allArgumentsValid;
         }
 
@@ -153,7 +116,7 @@ const routes = require("@octokit/rest/lib/routes.json"),
             }
         };
         for(const ns in routes) {
-            client[ns] = generateStubNamespace(routes[ns]);
+            client[ns] = generateStubNamespace(routes, ns);
         }
         return client;
     };

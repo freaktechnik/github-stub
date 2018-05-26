@@ -21,13 +21,29 @@ const getBestStringArg = (spec) => {
     }
     return STRING_ARGS[0];
 };
-const getArgValueForSpec = (spec) => {
+
+const buildObjectForSpec = (params, name) => {
+    const obj = {};
+    const isParentArray = params[name].type.endsWith("[]");
+    const extraChars = isParentArray ? 3 : 1;
+    for(const param in params) {
+        if(param.startsWith(name) &&
+            param != name && param.includes(".") &&
+            !param.substr(name.length + extraChars).includes(".")) {
+            const path = param.split(".");
+            obj[path.pop()] = getArgValueForSpec(params, param); // eslint-disable-line no-use-before-define
+        }
+    }
+    return obj;
+};
+const getArgValueForSpec = (params, name) => {
+    const spec = params[name];
     if("default" in spec) {
         if(typeof spec.default === "string") {
             if(spec.type === "boolean") {
                 return spec.default === "true";
             }
-            else if(spec.type === "number") {
+            else if(spec.type === "number" || spec.type === "integer") {
                 return parseInt(spec.default, 10);
             }
             else if(spec.type === "string[]") {
@@ -43,9 +59,9 @@ const getArgValueForSpec = (spec) => {
 
     switch(spec.type) {
     case "string":
-    case "object":
         return getBestStringArg(spec);
     case "number":
+    case "integer":
         return 1;
     case "boolean":
         return true;
@@ -56,8 +72,19 @@ const getArgValueForSpec = (spec) => {
             'foo',
             'bar'
         ];
+    case "string | object":
     case "json":
         return JSON.stringify({});
+    case "object":
+        return buildObjectForSpec(params, name);
+    case "object[]":
+        return [ buildObjectForSpec(params, name) ];
+    case "integer[]":
+        return [
+            0,
+            1,
+            2
+        ];
     default:
     }
 
@@ -65,6 +92,12 @@ const getArgValueForSpec = (spec) => {
 };
 const resolveParams = (params) => {
     const p = Object.assign({}, params);
+    // Link the aliased params to their original.
+    for(const param in p) {
+        if(p[param].alias) {
+            p[param] = p[p[param].alias];
+        }
+    }
     return p;
 };
 
@@ -115,8 +148,7 @@ const testArgumentsValid = (t, property, name, spec) => {
     const params = {};
     const resolved = resolveParams(spec.params);
     for(const param in resolved) {
-        const paramSpec = resolved[param];
-        params[param] = getArgValueForSpec(paramSpec);
+        params[param] = getArgValueForSpec(resolved, param);
     }
     property(params);
     const spyAssertTrue = sinon.spy(t.true.bind(t));
@@ -224,10 +256,18 @@ test('does not throw when calling arguments valid on uncalled stub', (t) => {
             test('namespace', testNamespace, namespace, ns);
             for(const m in stubGithub[ns]) {
                 const method = namespace[m];
+                let spec = schema[ns][m];
+                if(spec.alias) {
+                    const [
+                        aliasNs,
+                        aliasMethod
+                    ] = spec.alias.split(".");
+                    spec = schema[aliasNs][aliasMethod];
+                }
                 test(ns, [
                     testMethod,
                     testArgumentsValid
-                ], method, m, schema[ns][m]);
+                ], method, m, spec);
             }
         }
     }

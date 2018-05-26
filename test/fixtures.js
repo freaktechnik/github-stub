@@ -63,7 +63,14 @@ const getClientMethod = (request) => {
     const cleanedPath = cleanURL(request.path);
     for(const ns in schema) {
         for(const method in schema[ns]) {
-            const m = schema[ns][method];
+            let m = schema[ns][method];
+            if(m.alias) {
+                const [
+                    aliasNs,
+                    aliasMethod
+                ] = m.alias.split(".");
+                m = schema[aliasNs][aliasMethod];
+            }
             // Skip upload asset method for most fixtures.
             if((method === "upload-asset" && !cleanedPath.includes('release-assets')) ||
                 (request.method.toLowerCase() === "post" && method !== "upload-asset" && cleanedPath.includes('release-assets'))) {
@@ -84,6 +91,7 @@ const getClientMethod = (request) => {
 const normalizeParam = (value, type) => {
     switch(type) {
     case "number":
+    case "integer":
         return parseInt(value, 10);
     case "string":
         return value.toString();
@@ -158,7 +166,7 @@ const getParams = (request, ns, method) => {
 
     const headerProperty = 'headers.';
     for(const p in m.params) {
-        if(m.params[p].required && !(p in params)) {
+        if(m.params[p].required && !(p in params) && !p.includes(".")) {
             if(p === "filePath") {
                 params[p] = '/tmp/file';
             }
@@ -166,9 +174,12 @@ const getParams = (request, ns, method) => {
                 params[p] = request.body;
                 bodyConsumed = true;
             }
-            else if(m.params[p].mapTo.startsWith(headerProperty)) {
+            else if(m.params[p].mapTo && m.params[p].mapTo.startsWith(headerProperty)) {
                 const header = m.params[p].mapTo.substr(headerProperty.length);
                 params[p] = request.reqheaders[header];
+            }
+            else if(m.params[p].allowNull) {
+                params[p] = null;
             }
             else {
                 throw new Error(`Missing param ${p} for ${request.path}`);

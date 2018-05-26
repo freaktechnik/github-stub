@@ -56,7 +56,8 @@ for(const fixture of TIMESTAMP_FIXTURES) {
 const VALID_OBJECTS = [
     "Object",
     Buffer.from("Object"),
-    process.stdin
+    process.stdin,
+    {}
 ];
 const testValidObjects = (t, object) => {
     t.true(utils.isObject(object));
@@ -74,8 +75,7 @@ const INVALID_OBJECTS = [
     undefined,
     function() {
         // only used for type check.
-    },
-    {}
+    }
 ];
 const testInvalidObjects = (t, object) => {
     t.false(utils.isObject(object));
