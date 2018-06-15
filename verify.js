@@ -98,7 +98,7 @@ exports.argSpec = (arg, value, params, assert) => {
     }
 
     if("validation" in argSpec && argSpec.validation.length) {
-        let stringValue = value;
+        const stringValue = value;
         // if(argSpec.type === "number" && typeof value === "number") {
         //     stringValue = `${value}`;
         // }
