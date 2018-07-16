@@ -9,8 +9,8 @@ const utils = require("./utils"),
 exports.object = (arg, value, params, assert) => {
     for(const param in params) {
         if(param.startsWith(arg) && param.includes(".")) {
-            const path = param.split(".");
-            const count = arg.includes(".") ? arg.match(/\./g).length : START;
+            const path = param.split("."),
+                count = arg.includes(".") ? arg.match(/\./g).length : START;
             // remove name of param
             for(let i = START; i <= count; ++i) {
                 path.shift();
