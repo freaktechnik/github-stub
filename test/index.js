@@ -95,7 +95,15 @@ const resolveParams = (params) => {
     // Link the aliased params to their original.
     for(const param in p) {
         if(p[param].alias) {
-            p[param] = p[p[param].alias];
+            const { alias } = p[param];
+            if(alias in p) {
+                p[param] = p[alias];
+            }
+            else if(!alias.includes('.') && param.includes('.')) {
+                const path = param.split('.');
+                const alternativeAlias = `${path.slice(0, path.length - 1).join('.')}.${alias.split('.').pop()}`;
+                p[param] = p[alternativeAlias];
+            }
         }
     }
     return p;
@@ -148,7 +156,9 @@ const testArgumentsValid = (t, property, name, spec) => {
     const params = {};
     const resolved = resolveParams(spec.params);
     for(const param in resolved) {
-        params[param] = getArgValueForSpec(resolved, param);
+        if(resolved.hasOwnProperty(param)) {
+            params[param] = getArgValueForSpec(resolved, param);
+        }
     }
     property(params);
     const spyAssertTrue = sinon.spy(t.true.bind(t));

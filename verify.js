@@ -83,7 +83,14 @@ exports.type = (arg, value, type, params, assert) => {
 exports.argSpec = (arg, value, params, assert) => {
     let argSpec = params[arg];
     if(argSpec.alias) {
-        argSpec = params[argSpec.alias];
+        if(argSpec.alias in params) {
+            argSpec = params[argSpec.alias];
+        }
+        else if(!argSpec.alias.includes('.') && arg.includes('.')) {
+            const path = arg.split('.'),
+                alternativeAlias = `${path.slice(START, path.length - ONE).join('.')}.${argSpec.alias.split('.').pop()}`;
+            argSpec = params[alternativeAlias];
+        }
     }
 
     if(value !== null) {
