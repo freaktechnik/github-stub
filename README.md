@@ -1,5 +1,6 @@
 # github-stub
 [![Build Status](https://travis-ci.org/freaktechnik/github-stub.svg?branch=master)](https://travis-ci.org/freaktechnik/github-stub) [![Greenkeeper badge](https://badges.greenkeeper.io/freaktechnik/github-stub.svg)](https://greenkeeper.io/) [![codecov](https://codecov.io/gh/freaktechnik/github-stub/branch/master/graph/badge.svg)](https://codecov.io/gh/freaktechnik/github-stub)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffreaktechnik%2Fgithub-stub.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffreaktechnik%2Fgithub-stub?ref=badge_shield)
 
 Exports a sinon stub version of the node github client. It also exposes a function
 to check the stubs were called with valid parameters.
@@ -24,3 +25,6 @@ it contains.
 
 ## License
 This package is licensed under the MIT license.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffreaktechnik%2Fgithub-stub.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffreaktechnik%2Fgithub-stub?ref=badge_large)
