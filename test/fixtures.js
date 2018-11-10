@@ -170,7 +170,7 @@ const getParams = (request, ns, method) => {
             if(p === "filePath") {
                 params[p] = '/tmp/file';
             }
-            else if(p === "file" && !bodyConsumed) {
+            else if((p === "file" || m.params[p].mapTo === 'data') && !bodyConsumed) {
                 params[p] = request.body;
                 bodyConsumed = true;
             }
