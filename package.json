@@ -25,7 +25,7 @@
     "nyc": "^13.1.0"
   },
   "dependencies": {
-    "@octokit/rest": "^15.17.0",
+    "@octokit/rest": "^16.6.1",
     "sinon": "^6.3.5"
   },
   "engines": {
