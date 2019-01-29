@@ -1,3 +1,5 @@
+# Use hooks in @octokit/rest instead of this.
+
 # github-stub
 [![Build Status](https://travis-ci.org/freaktechnik/github-stub.svg?branch=master)](https://travis-ci.org/freaktechnik/github-stub) [![Greenkeeper badge](https://badges.greenkeeper.io/freaktechnik/github-stub.svg)](https://greenkeeper.io/) [![codecov](https://codecov.io/gh/freaktechnik/github-stub/branch/master/graph/badge.svg)](https://codecov.io/gh/freaktechnik/github-stub)
 
